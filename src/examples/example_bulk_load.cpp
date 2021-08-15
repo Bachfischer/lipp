@@ -11,7 +11,7 @@ int main()
 
     // prepare data
     vector<pair<int, int>> data;
-    for (int i = 0; i < 100000; i ++) {
+    for (int i = 0; i < 1000000; i ++) {
         data.push_back({i, i % 127});
     }
 
