@@ -7,19 +7,16 @@ using namespace std;
 
 int main()
 {
-    LIPP<uint64_t, uint64_t> lipp;
+    LIPP<int, int> lipp;
 
     // prepare data
-    vector<pair<uint64_t, uint64_t>> data;
-    for (int i = 0; i < 100000000; i ++) {
+    vector<pair<int, int>> data;
+    for (int i = 0; i < 100000; i ++) {
         data.push_back({i, i % 127});
     }
-    cout << "Keys loaded succesfully" << endl;
-
 
     // bulk load
     lipp.bulk_load(data.data(), data.size());
-    cout << "Finished bulk load" << endl;
 
     // normal insert
     lipp.insert(-100, 5);
