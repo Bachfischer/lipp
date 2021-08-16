@@ -30,7 +30,7 @@ std::vector<Key> load_data(const std::string &filename) {
 int main(int argc, char *argv[])
 {
     /* Load keys. */
-    auto keys = load_data<uint64_t>("data/wiki_ts_200M_uint64");
+    auto keys = load_data<uint64_t>("data/fb_200M_uint64");
 
     std::vector<std::pair<uint64_t, uint64_t>>  key_value_pairs;
     key_value_pairs.reserve(keys.size());
