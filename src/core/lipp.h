@@ -3,6 +3,7 @@
 
 #include "lipp_base.h"
 #include <stdint.h>
+#include <math.h>
 #include <limits>
 #include <cstdio>
 #include <stack>
@@ -38,6 +39,12 @@ class LIPP
 {
     static_assert(std::is_arithmetic<T>::value, "LIPP key type must be numeric.");
 
+    inline int compute_gap_count(int size) {
+        if (size >= 1000000) return 1;
+        if (size >= 100000) return 2;
+        return 5;
+    }
+
     struct Node;
     inline int PREDICT_POS(Node* node, T key) const {
         double v = node->model.predict_double(key);
@@ -54,7 +61,6 @@ class LIPP
         bitmap_item -= 1 << BITMAP_NEXT_1(bitmap_item);
     }
 
-    const int BUILD_GAP_CNT;
     const double BUILD_LR_REMAIN;
     const bool QUIET;
 
@@ -70,8 +76,8 @@ class LIPP
 public:
     typedef std::pair<T, P> V;
 
-    LIPP(int BUILD_GAP_CNT = 5, double BUILD_LR_REMAIN = 0, bool QUIET = true)
-        : BUILD_GAP_CNT(BUILD_GAP_CNT), BUILD_LR_REMAIN(BUILD_LR_REMAIN), QUIET(QUIET) {
+    LIPP(double BUILD_LR_REMAIN = 0, bool QUIET = true)
+        : BUILD_LR_REMAIN(BUILD_LR_REMAIN), QUIET(QUIET) {
         {
             std::vector<Node*> nodes;
             for (int _ = 0; _ < 1e7; _ ++) {
@@ -398,6 +404,8 @@ private:
 
         node->model.a = (mid1_target - mid2_target) / (mid1_key - mid2_key);
         node->model.b = mid1_target - node->model.a * mid1_key;
+        RT_ASSERT(isfinite(node->model.a));
+        RT_ASSERT(isfinite(node->model.b));
 
         { // insert key1&value1
             int pos = PREDICT_POS(node, key1);
@@ -458,6 +466,7 @@ private:
                 T* keys = _keys + begin;
                 P* values = _values + begin;
                 const int size = end - begin;
+                const int BUILD_GAP_CNT = compute_gap_count(size);
 
                 node->is_two = 0;
                 node->build_size = size;
@@ -481,6 +490,8 @@ private:
 
                 node->model.a = (mid1_target - mid2_target) / (mid1_key - mid2_key);
                 node->model.b = mid1_target - node->model.a * mid1_key;
+                RT_ASSERT(isfinite(node->model.a));
+                RT_ASSERT(isfinite(node->model.b));
 
                 const int lr_remains = static_cast<int>(size * BUILD_LR_REMAIN);
                 node->model.b += lr_remains;
@@ -563,6 +574,7 @@ private:
                 T* keys = _keys + begin;
                 P* values = _values + begin;
                 const int size = end - begin;
+                const int BUILD_GAP_CNT = compute_gap_count(size);
 
                 node->is_two = 0;
                 node->build_size = size;
@@ -599,6 +611,8 @@ private:
 
                         node->model.a = 1.0 / Ut;
                         node->model.b = (L - node->model.a * (keys[size-1-D] + keys[D])) / 2;
+                        RT_ASSERT(isfinite(node->model.a));
+                        RT_ASSERT(isfinite(node->model.b));
                         node->num_items = L;
                     } else {
                         stats.fmcd_broken_times ++;
@@ -619,6 +633,8 @@ private:
 
                         node->model.a = (mid1_target - mid2_target) / (mid1_key - mid2_key);
                         node->model.b = mid1_target - node->model.a * mid1_key;
+                        RT_ASSERT(isfinite(node->model.a));
+                        RT_ASSERT(isfinite(node->model.b));
                     }
                 }
                 RT_ASSERT(node->model.a >= 0);
